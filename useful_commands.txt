@@ -1,0 +1,18 @@
+sudo service NetworkManager stop
+sudo ip link set wlp114s0 down
+sudo iw wlp114s0 set monitor none
+sudo ip link set wlp114s0 up
+
+# now to turn it off
+sudo ip link set <interface> down
+sudo iw <interface> set type managed 
+sudo ip link set <interface> up
+
+
+# sudo iw dev to check the status
+sudo ip link set wlp114s0 down
+sudo iw wlp114s0 set type managed
+sudo ip link set wlp114s0 up
+sudo systemctl start NetworkManager
+
+sudo airodump-ng wlp114s0
