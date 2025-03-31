@@ -1,6 +1,7 @@
 from scapy.all import *
 from scapy.layers.dot11 import RadioTap, Dot11
 import signal
+
 """Capture rssi values from particular mac address and writes to file from particular distance"""
 # import signal
 target_mac = "f0:09:0d:71:6e:7d".lower()
@@ -12,7 +13,7 @@ def handler(signum, frame):
     with open(fname, "w") as f:
         for val in q:
             f.write(f"{val}\n")
-    wrpcap(fname + ".pcap", packets)
+    wrpcap(fname + ".pcap", q)
     exit(0)
         
 
@@ -30,7 +31,7 @@ def packet_handler(pkt):
             if rssi != 0:
                 print(f"[RSSI={rssi} dBm] SRC={src} --> DST={dst}")
                 q.append(rssi) 
-                packets.append(pkt)
+                q.append(pkt)
 
 
 
