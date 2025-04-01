@@ -4,7 +4,7 @@ import signal
 
 """Capture rssi values from particular mac address and writes to file from particular distance"""
 # import signal
-target_mac = "f0:09:0d:71:6e:7d".lower()
+target_mac = "f0:09:0d:71:6d:af".lower()
 q = []
 distance = 0
 fname = ""
@@ -28,6 +28,7 @@ def packet_handler(pkt):
             #Extract RSSI from RadioTap if available
             radiotap = pkt.getlayer(RadioTap)
             rssi = radiotap.dBm_AntSignal
+            print("any luck :(")
             if rssi != 0:
                 print(f"[RSSI={rssi} dBm] SRC={src} --> DST={dst}")
                 q.append(rssi) 

@@ -5,13 +5,13 @@ import queue
 import threading
 import sys
 
-target_mac = "f0:09:0d:71:6e:7d".lower()
+target_mac = "f0:09:0d:71:6d:af".lower()
 
 q = queue.Queue()
 
 coords = []
 fname = ""
-rssi_q = []
+rssi_q = {}
 pause_event = threading.Event()
 stop_event = threading.Event()
 
@@ -36,27 +36,39 @@ def sniff_routine():
 
 
 def point_routine():
+    curr = None
+    """
+    When using first hit new, wait a second, and then move to location before moving to 
+    a new coordinate to capture values. 
+    """
     while True:
         inp = input("COMMAND: ")
+        pause_event.set()
+        if curr is not None:
+            temp = []
+            while not q.empty():
+            # Drain the queue into a temporary list
+                temp.append(q.get())
+            rssi_q[curr] = temp
         if inp == 'done':
             # Signal the sniffing thread to stop
             stop_event.set()
+            print(rssi_q)
             sys.exit()
             break
         if inp == 'new':
             # Pause sniffing temporarily
-            pause_event.set()
             coord_inp = input("Enter coordinates (x y): ")
             x, y = map(float, coord_inp.split())
-            coords.append((x, y))
-
-            # Drain the queue into a temporary list
-            temp = []
-            while not q.empty():
-                temp.append(q.get())
-            rssi_q.append(temp)
+            curr = (x, y)
             pause_event.clear()
 
-threading.Thread(target=point_routine).start()
+t1 = threading.Thread(target=point_routine)
+t1.start()
 threading.Thread(target=sniff_routine, daemon=True).start()
+t1.join()
+with open("output", "w") as f:
+    for key, vals in rssi_q.items():
+        line = f"{key} : {' '.join(str(v) for v in vals)}\n"
+        f.write(line)
 
