@@ -3,6 +3,7 @@ from scapy.layers.dot11 import RadioTap, Dot11
 from helper import *
 import queue
 import threading
+import sys
 
 target_mac = "f0:09:0d:71:6e:7d".lower()
 
@@ -29,7 +30,7 @@ def sniff_routine():
 
     while not stop_event.is_set():
         if pause_event.is_set():
-            time.sleep(0.1)
+            time.sleep(0.3)
             continue
         sniff(iface="wlp114s0", prn=packet_handler, store=0, timeout=3)
 
@@ -37,14 +38,15 @@ def sniff_routine():
 def point_routine():
     while True:
         inp = input("COMMAND: ")
-        if inp == 'DONE':
+        if inp == 'done':
             # Signal the sniffing thread to stop
             stop_event.set()
+            sys.exit()
             break
-        if inp == 'NEW':
+        if inp == 'new':
             # Pause sniffing temporarily
             pause_event.set()
-            coord_inp = input("After moving to new location enter new coordinates (x y): ")
+            coord_inp = input("Enter coordinates (x y): ")
             x, y = map(float, coord_inp.split())
             coords.append((x, y))
 
@@ -55,6 +57,6 @@ def point_routine():
             rssi_q.append(temp)
             pause_event.clear()
 
-point_routine()
+threading.Thread(target=point_routine).start()
 threading.Thread(target=sniff_routine, daemon=True).start()
 
