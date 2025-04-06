@@ -28,7 +28,6 @@ def packet_handler(pkt):
             #Extract RSSI from RadioTap if available
             radiotap = pkt.getlayer(RadioTap)
             rssi = radiotap.dBm_AntSignal
-            print("any luck :(")
             if rssi != 0:
                 print(f"[RSSI={rssi} dBm] SRC={src} --> DST={dst}")
                 q.append(rssi) 
@@ -39,4 +38,4 @@ def packet_handler(pkt):
 distance= input("Distance:")
 fname = "data_" + str(distance)
 signal.signal(signal.SIGINT, handler)
-sniff(iface="wlp114s0", prn=packet_handler, store=0)
+sniff(iface="wlan1", prn=packet_handler, store=0)
