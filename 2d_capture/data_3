@@ -1,0 +1,20 @@
+-63
+RadioTap / 802.11 Data Null (no data) f0:09:0d:71:6d:af (TA=SA) > d8:32:14:45:a0:71 (RA=BSSID)
+-63
+RadioTap / 802.11 Control Block Ack f0:09:0d:71:6d:af (TA) > d8:32:14:45:a0:71 (RA) / Raw
+-63
+RadioTap / 802.11 Data QoS Data f0:09:0d:71:6d:af (TA=SA) > d8:32:14:45:a0:71 (RA=BSSID) / Dot11QoS / Dot11CCMP
+-64
+RadioTap / 802.11 Data QoS Data f0:09:0d:71:6d:af (TA=SA) > d8:32:14:45:a0:71 (RA=BSSID) / Dot11QoS / Dot11CCMP
+-64
+RadioTap / 802.11 Data QoS Data f0:09:0d:71:6d:af (TA=SA) > d8:32:14:45:a0:71 (RA=BSSID) / Dot11QoS / Dot11CCMP
+-64
+RadioTap / 802.11 Data QoS Data f0:09:0d:71:6d:af (TA=SA) > d8:32:14:45:a0:71 (RA=BSSID) / Dot11QoS / Dot11CCMP
+-63
+RadioTap / 802.11 Control Block Ack f0:09:0d:71:6d:af (TA) > d8:32:14:45:a0:71 (RA) / Raw
+-63
+RadioTap / 802.11 Control Block Ack f0:09:0d:71:6d:af (TA) > d8:32:14:45:a0:71 (RA) / Raw
+-62
+RadioTap / 802.11 Control Block Ack f0:09:0d:71:6d:af (TA) > d8:32:14:45:a0:71 (RA) / Raw
+-64
+RadioTap / 802.11 Data QoS Data f0:09:0d:71:6d:af (TA=SA) > d8:32:14:45:a0:71 (RA=BSSID) / Dot11QoS / Dot11CCMP
