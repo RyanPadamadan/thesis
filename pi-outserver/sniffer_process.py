@@ -5,7 +5,8 @@ import time
 
 target_mac = "f0:09:0d:71:6d:af".lower()
 UDP_IP = "127.0.0.1"
-UDP_PORT = 9999  # User-defined
+UDP_PORT = 9999
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def packet_handler(pkt):
     if pkt.haslayer(Dot11):
@@ -19,7 +20,6 @@ def packet_handler(pkt):
                 sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
                 # print(f"[SENT] {message}")
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def start_sniffer():
     sniff(iface="wlan1", prn=packet_handler, store=0)
