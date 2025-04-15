@@ -23,7 +23,7 @@ def udp_listener(log):
                 "datetime": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(float(timestamp)))
             }
             log.append(pkt)
-            print("l1: ", log)
+            # print("l1: ", log)
         except Exception as e:
             print(f"[ERROR] Malformed packet: {decoded} ({e})")
 
