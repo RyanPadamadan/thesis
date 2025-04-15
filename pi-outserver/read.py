@@ -35,7 +35,7 @@ def save_to_csv(data, filename):
         for row in data:
             writer.writerow(row)
 
-    print(f"[✅] Saved {len(data)} entries to {filename}")
+    print(f"Saved {len(data)} entries to {filename}")
 
 def get_next_exp_folder(base_name="exp_"):
     existing = [d for d in os.listdir() if os.path.isdir(d) and re.match(f"^{base_name}[0-9]+$", d)]
@@ -43,11 +43,11 @@ def get_next_exp_folder(base_name="exp_"):
     next_num = max(nums) + 1 if nums else 1
     return f"{base_name}{next_num}"
 
-if __name__ == "__main__":
-    print("[📁] Determining experiment folder...")
+def save_all_logs():
+    print("Determining experiment folder...")
     exp_dir = get_next_exp_folder()
     os.makedirs(exp_dir)
-    print(f"[📁] Created experiment directory: {exp_dir}")
+    print(f"Created experiment directory: {exp_dir}")
 
     # Fetch + save RSSI
     print("[⬇️] Fetching RSSI data...")
@@ -65,3 +65,7 @@ if __name__ == "__main__":
     save_to_csv(device_data, os.path.join(exp_dir, DEVICE_FILE))
 
     print(f"[✅] All data saved under {exp_dir}/")
+    return exp_dir
+
+if __name__ == "__main__":
+    save_all_logs()

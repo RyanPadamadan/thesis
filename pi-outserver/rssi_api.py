@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from udp_listener import start_udp_thread
+from read import save_all_logs
 
 def start_api(log):
     app = Flask(__name__)
@@ -38,6 +39,32 @@ def start_api(log):
         elif request.method == "GET":
             print(f"[FLASK] /device GET | log size: {len(device_log)}")
             return jsonify(device_log)
+        
+    @app.route("/reset", methods=["POST"])
+    def reset_logs():
+        log[:] = []
+        coords_log.clear()
+        device_log.clear()
+        print("[FLASK] All logs cleared")
+        return jsonify({"status": "cleared all logs"})
+
+    @app.route("/start_experiment", methods=["POST"])
+    def start_experiment():
+        global experiment_active
+        log.clear()
+        coords_log.clear()
+        device_log.clear()
+        experiment_active = True
+        return jsonify({"status": "experiment started"})
+
+
+    @app.route("/stop_experiment", methods=["POST"])
+    def stop_experiment():
+        global experiment_active
+        experiment_active = False
+        print("does this run")
+        exp_folder = save_all_logs()
+        return jsonify({"status": "experiment stopped", "saved_to": exp_folder})
 
     print("[FLASK] API running on http://0.0.0.0:8081")
     app.run(host="0.0.0.0", port=8081, use_reloader=False)
