@@ -8,9 +8,9 @@ if __name__ == "__main__":
 
         # Pass shared_log to both
         p1 = Process(target=start_api, args=(shared_log,))
-        p2 = Process(target=start_sniffer)
+        # p2 = Process(target=start_sniffer)
 
         p1.start()
-        p2.start()
+        # p2.start()
         p1.join()
-        p2.join()
+        # p2.join()

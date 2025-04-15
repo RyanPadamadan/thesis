@@ -3,8 +3,8 @@ from scapy.all import *
 from scapy.layers.dot11 import RadioTap, Dot11
 import time
 
-target_mac = "04:99:bb:d8:6e:2e".lower()
-UDP_IP = "127.0.0.1"
+target_mac = "f0:09:0d:71:6d:af".lower()
+UDP_IP = "192.168.0.184"
 UDP_PORT = 9999  # User-defined
 
 def packet_handler(pkt):
@@ -17,12 +17,11 @@ def packet_handler(pkt):
                 timestamp = time.time()
                 message = f"{src},{dst},{rssi},{timestamp}"
                 sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
-                print(f"[SENT] {message}")
+                # print(f"[SENT] {message}")
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 def start_sniffer():
     sniff(iface="wlan1", prn=packet_handler, store=0)
 
-if __name__ == "__main__":
-    start_sniffer()
+start_sniffer()

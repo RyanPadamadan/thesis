@@ -2,14 +2,14 @@ import socket
 import threading
 import time
 
-UDP_IP = "127.0.0.1"
+UDP_IP = "0.0.0.0"
 UDP_PORT = 9999
 
 def udp_listener(log):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
     print(f"[UDP LISTENER] Listening on {UDP_IP}:{UDP_PORT}")
-
+    print("Hi")
     while True:
         data, _ = sock.recvfrom(1024)
         decoded = data.decode()
