@@ -42,7 +42,7 @@ def start_api(log):
         
     @app.route("/reset", methods=["POST"])
     def reset_logs():
-        log[:] = []
+        log[:] = [] 
         coords_log.clear()
         device_log.clear()
         print("[FLASK] All logs cleared")
@@ -51,7 +51,7 @@ def start_api(log):
     @app.route("/start_experiment", methods=["POST"])
     def start_experiment():
         global experiment_active
-        log.clear()
+        log[:] = []
         coords_log.clear()
         device_log.clear()
         experiment_active = True
@@ -62,7 +62,6 @@ def start_api(log):
     def stop_experiment():
         global experiment_active
         experiment_active = False
-        print("does this run")
         exp_folder = save_all_logs()
         return jsonify({"status": "experiment stopped", "saved_to": exp_folder})
 
