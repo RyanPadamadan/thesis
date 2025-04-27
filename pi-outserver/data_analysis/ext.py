@@ -19,6 +19,33 @@ def load_experiment_data(exp_dir_name):
 
     return coordinates_df, device_df, rssi_df
 
+def get_device_coordinates(device_df, target_mac=None):
+    """
+    Extracts the (x, y, z) coordinates of the target device from the device dataframe.
+    If no target_mac is provided, and only one device is present, it returns that.
+    
+    Args:
+        device_df (DataFrame): DataFrame containing 'mac', 'x', 'y', 'z' columns
+        target_mac (str, optional): MAC address to find. Defaults to None.
+    
+    Returns:
+        tuple: (x, y, z) coordinates of the device
+    """
+    if target_mac:
+        device_row = device_df[device_df['mac'] == target_mac]
+    else:
+        device_row = device_df
+
+    if device_row.empty:
+        raise ValueError(f"Device with MAC {target_mac} not found in device dataframe.")
+
+    x = device_row['x'].values[0]
+    y = device_row['y'].values[0]
+    z = device_row['z'].values[0]
+
+    return (x, y, z)
+
+
 def map_rssi_coords(coordinates_df, rssi_df):
     rssi_vals = rssi_df.copy()
     coords = coordinates_df.copy()
@@ -42,7 +69,7 @@ def get_transmission_rssi(file_name):
     df = pd.read_csv(file_path)
     return df['rssi'].median()
 def path_loss_dist(rssi, tx):
-    return 10 ** ((tx - rssi)/10 * 2) # assuming n = 2, because mostly open space
+    return 10 ** ((tx - rssi)/(10 * 2.5)) # assuming n = 2, because mostly open space
 
 def distance(p1, p2):
     return math.hypot(p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2])
@@ -67,3 +94,13 @@ def trilateration(p1, r1, p2, r2, p3, r3):
 
     result = P1 + x * ex + y * ey + z * ez
     return result.tolist()
+
+
+def calculate_position_error(estimated, real):
+    # euclidean error metric
+    if not estimated:
+        return None
+    x_hat, y_hat, z_hat = estimated
+    x, y, z = real
+    error = math.sqrt((x_hat - x)**2 + (y_hat - y)**2 + (z_hat - z)**2)
+    return error

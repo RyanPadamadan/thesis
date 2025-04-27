@@ -18,7 +18,7 @@ def packet_handler(pkt):
                 timestamp = time.time()
                 message = f"{src},{dst},{rssi},{timestamp}"
                 sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
-                print(f"[SENT] {message}")
+                # print(f"[SENT] {message}")
 
 
 def start_sniffer():
