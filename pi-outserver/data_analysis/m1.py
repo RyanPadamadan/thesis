@@ -7,6 +7,10 @@ import math
 
 tx_power_curr = get_transmission_rssi("rssi_1m.csv")
 target_mac = "04:99:bb:d8:6e:2e"
+ls1 = []
+ls2 = []
+ls3 = []
+
 def compute_intersections(mapped, tx_power):
     triples = list(itertools.combinations(mapped, 3))
     intersection_points = []
