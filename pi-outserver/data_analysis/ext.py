@@ -6,7 +6,7 @@ import math
 def load_experiment_data(exp_dir_name):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # base_dir = os.path.abspath(os.path.join(script_dir, "..", exp_dir_name))
-    base_dir = os.path.abspath(os.path.join(script_dir, "../set_1_exps", exp_dir_name))
+    base_dir = os.path.abspath(os.path.join(script_dir, "../", exp_dir_name))
 
     # Define file paths
     coordinates_file = os.path.join(base_dir, "coordinates.csv")
