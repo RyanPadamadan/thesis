@@ -108,6 +108,6 @@ def run_experiment(exp_id, localization_function, *args):
         print(f"{method} → Estimated: {estimated_position}, Error: {error:.4f} meters")
 
 if __name__ == "__main__":
-    for i in range(3, 6):
+    for i in range(1, 5):
         experiment = f"exp_{i}"
         run_experiment(i, localize_device_incremental, experiment, tx_power_curr)

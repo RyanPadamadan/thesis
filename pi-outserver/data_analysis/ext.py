@@ -17,8 +17,31 @@ def load_experiment_data(exp_dir_name):
     coordinates_df = pd.read_csv(coordinates_file)
     device_df = pd.read_csv(device_file)
     rssi_df = pd.read_csv(rssi_log_file)
-
     return coordinates_df, device_df, rssi_df
+
+def load_experiment_data_with_mesh(exp_dir_name):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    base_dir = os.path.abspath(os.path.join(script_dir, "../", exp_dir_name))
+
+    # Define file paths
+    coordinates_file = os.path.join(base_dir, "coordinates.csv")
+    device_file = os.path.join(base_dir, "devices.csv")
+    rssi_log_file = os.path.join(base_dir, "rssi_log.csv")
+    meshpoints_file = os.path.join(base_dir, "meshpoints.csv") 
+
+    # Load the data into DataFrames
+    coordinates_df = pd.read_csv(coordinates_file)
+    device_df = pd.read_csv(device_file)
+    rssi_df = pd.read_csv(rssi_log_file)
+    meshpoints_df = pd.read_csv(meshpoints_file)  
+
+    return {
+        "coordinates": coordinates_df,
+        "devices": device_df,
+        "rssi": rssi_df,
+        "meshpoints": meshpoints_df  
+    }
+
 
 def get_device_coordinates(device_df, target_mac=None):
     """

@@ -7,11 +7,13 @@ import re
 RSSI_API = "http://127.0.0.1:8081/rssi"
 COORD_API = "http://127.0.0.1:8081/coords"
 DEVICE_API = "http://127.0.0.1:8081/device"
+MESH_API = "http://127.0.0.1:8081/meshpoints"  # ✅ new
 
 # File names
 RSSI_FILE = "rssi_log.csv"
 COORD_FILE = "coordinates.csv"
 DEVICE_FILE = "devices.csv"
+MESH_FILE = "meshpoints.csv"  # ✅ new
 
 def fetch_api_data(url):
     try:
@@ -63,6 +65,11 @@ def save_all_logs():
     print("[⬇️] Fetching device data...")
     device_data = fetch_api_data(DEVICE_API)
     save_to_csv(device_data, os.path.join(exp_dir, DEVICE_FILE))
+
+    # ✅ Fetch + save Mesh Points
+    print("[⬇️] Fetching meshpoints data...")
+    mesh_data = fetch_api_data(MESH_API)
+    save_to_csv(mesh_data, os.path.join(exp_dir, MESH_FILE))
 
     print(f"[✅] All data saved under {exp_dir}/")
     return exp_dir

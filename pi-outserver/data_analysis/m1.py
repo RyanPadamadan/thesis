@@ -90,7 +90,7 @@ def run_experiment(exp_name, localization_function, *args):
     print(f"Error: {error:.4f} meters")
 
 if __name__ == "__main__":
-    for i in range(1, 6):
+    for i in range(1, 5):
         experiment = f"exp_{i}"
         print(f"---Running Experiment {i}---")
         run_experiment("Median", localize_device_median, experiment, tx_power_curr,)
