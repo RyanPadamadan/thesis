@@ -98,7 +98,7 @@ def plot_intersections_and_voxels(intersection_points, voxel_set, name, voxel_si
     plt.show()
     
 if __name__ == "__main__":
-    for i in range(1,5):
+    for i in range(1,8):
         exp_name = f"exp_{i}"
         tx_power = get_transmission_rssi("rssi_1m.csv")  # Or just use -59
 

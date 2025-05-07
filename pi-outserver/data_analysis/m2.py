@@ -33,7 +33,7 @@ def compute_intersections(mapped, tx_power):
 
     return intersection_points
 
-def refine_with_method(method, points, ref_point, accepted_points, n_clusters=1, eps=1.0, min_samples=3, threshold=2.5):
+def refine_with_method(method, points, ref_point, accepted_points, n_clusters=1, eps=2.0, min_samples=3, threshold=2.5):
     if ref_point is None:
         # First-time initialization
         if method == "median":
@@ -107,7 +107,44 @@ def run_experiment(exp_id, localization_function, *args):
         error = calculate_position_error(estimated_position, actual_position)
         print(f"{method} → Estimated: {estimated_position}, Error: {error:.4f} meters")
 
+import matplotlib.pyplot as plt
+
+def plot_incremental_errors(errors_dict):
+    plt.figure(figsize=(10, 6))
+    x = list(range(1, len(next(iter(errors_dict.values()))) + 1))
+
+    for method, errors in errors_dict.items():
+        plt.plot(x, errors, marker='o', label=method)
+
+    plt.xlabel("Experiment Number")
+    plt.ylabel("Localization Error (meters)")
+    plt.title("Incremental Localization Error Across Experiments")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("m2")
+    plt.show()
 if __name__ == "__main__":
-    for i in range(1, 5):
+    errors_incremental = {
+        "Median": [],
+        "KMeans": [],
+        "DBSCAN": []
+    }
+
+    for i in range(1, 8):
         experiment = f"exp_{i}"
-        run_experiment(i, localize_device_incremental, experiment, tx_power_curr)
+        print(f"\n--- Running Experiment {i} ---")
+        results = localize_device_incremental(experiment, tx_power_curr)
+
+        if results is None:
+            print("Localization failed.")
+            for method in errors_incremental:
+                errors_incremental[method].append(None)
+            continue
+
+        for method, (est, actual) in results.items():
+            error = calculate_position_error(est, actual)
+            print(f"{method} → Estimated: {est}, Error: {error:.4f} meters")
+            errors_incremental[method].append(error)
+
+    plot_incremental_errors(errors_incremental)

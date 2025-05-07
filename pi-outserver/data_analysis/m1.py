@@ -3,6 +3,7 @@ import itertools
 import numpy as np
 from sklearn.cluster import KMeans, DBSCAN
 from ext import load_experiment_data, map_rssi_coords, path_loss_dist, trilateration, get_transmission_rssi, get_device_coordinates
+import matplotlib.pyplot as plt
 import math
 
 tx_power_curr = get_transmission_rssi("rssi_1m.csv")
@@ -89,10 +90,55 @@ def run_experiment(exp_name, localization_function, *args):
     print(f"Estimated Position: {estimated_position}")
     print(f"Error: {error:.4f} meters")
 
+
+def plot_localization_errors(errors_dict):
+    plt.figure(figsize=(10, 6))
+    x = list(range(1, len(next(iter(errors_dict.values()))) + 1))
+
+    for label, errors in errors_dict.items():
+        plt.plot(x, errors, label=label, marker='o')
+
+    plt.xlabel("Experiment Number")
+    plt.ylabel("Localization Error (meters)")
+    plt.title("Localization Error Comparison Across Experiments")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("m1")
+    plt.show()
+
+
 if __name__ == "__main__":
-    for i in range(1, 5):
+    median_errors = []
+    kmeans_errors = []
+    dbscan_errors = []
+
+    for i in range(1, 8):
         experiment = f"exp_{i}"
-        print(f"---Running Experiment {i}---")
-        run_experiment("Median", localize_device_median, experiment, tx_power_curr,)
-        run_experiment("KMeans", localize_device_kmeans, experiment, tx_power_curr,)
-        run_experiment("DBSCAN", localize_device_dbscan, experiment, tx_power_curr,)
+        print(f"\n--- Running Experiment {i} ---")
+
+        for method_name, func, store in [
+            ("Median", localize_device_median, median_errors),
+            ("KMeans", localize_device_kmeans, kmeans_errors),
+            ("DBSCAN", localize_device_dbscan, dbscan_errors),
+        ]:
+            print(f"Running {method_name}...")
+            result = func(experiment, tx_power_curr)
+            if result is None:
+                print(f"{method_name}: Localization failed.")
+                store.append(None)
+            else:
+                estimated, actual = result
+                error = calculate_position_error(estimated, actual)
+                print(f"Estimated Position: {estimated}")
+                print(f"Error: {error:.4f} meters")
+                store.append(error)
+
+    # Filter out experiments where any method failed
+    all_errors = {
+        "Median": [e for e in median_errors if e is not None],
+        "KMeans": [e for e in kmeans_errors if e is not None],
+        "DBSCAN": [e for e in dbscan_errors if e is not None],
+    }
+
+    plot_localization_errors(all_errors)
