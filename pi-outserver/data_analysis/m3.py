@@ -117,7 +117,7 @@ if __name__ == "__main__":
         print(f"Found {len(intersection_points)} intersection points from {exp_name}")
 
         st = generate_voxel_set(meshpoints_df)
-        plot_intersections_and_voxels(intersection_points, st, exp_name + "fig")
+        # plot_intersections_and_voxels(intersection_points, st, exp_name + "fig")
         # weighted_points = set_weights(st, intersection_points)
         # print(weighted_points)
 
