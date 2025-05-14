@@ -9,7 +9,6 @@ from ext import load_experiment_data, map_rssi_coords, path_loss_dist, get_trans
 # Settings
 tx_power_curr = get_transmission_rssi("rssi_1m.csv")
 target_mac = "04:99:bb:d8:6e:2e"
-exp_dir_name = "exp_1"
 
 # Core k-lateration fitting function
 def compute_k_lateration_estimate(mapped, tx_power, k):
@@ -23,7 +22,7 @@ def compute_k_lateration_estimate(mapped, tx_power, k):
             continue
         positions.append((x, y, z))
         distances.append(path_loss_dist(rssi, tx_power))
-    if len(positions) < 4:
+    if len(positions) < 3:
         return None
     def residuals(guess, positions, distances):
         x, y, z = guess
@@ -68,32 +67,35 @@ def calculate_position_error(estimated, real):
     return math.sqrt((x_hat - x)**2 + (y_hat - y)**2 + (z_hat - z)**2)
 
 # Load real experiment data
-coords_df, dev, rssi_df = load_experiment_data(exp_dir_name)
-mapped = map_rssi_coords(coords_df, rssi_df)
-actual = get_device_coordinates(dev, target_mac)
+for i in range(1,8):
+    exp_dir_name = f"exp_{i}"
+    coords_df, dev, rssi_df = load_experiment_data(exp_dir_name)
+    mapped = map_rssi_coords(coords_df, rssi_df)
+    actual = get_device_coordinates(dev, target_mac)
 
-# Run sweep
-k_values = list(range(4, min(16, len(mapped)+1)))
-errors_median = []
-errors_kmeans = []
-errors_dbscan = []
+    # Run sweep
+    k_values = list(range(3, min(16, len(mapped)+1)))
+    errors_median = []
+    errors_kmeans = []
+    errors_dbscan = []
 
-for k in k_values:
-    est_median, est_kmeans, est_dbscan = localize_all_methods(mapped, tx_power_curr, k)
-    errors_median.append(calculate_position_error(est_median, actual))
-    errors_kmeans.append(calculate_position_error(est_kmeans, actual))
-    errors_dbscan.append(calculate_position_error(est_dbscan, actual))
+    for k in k_values:
+        est_median, est_kmeans, est_dbscan = localize_all_methods(mapped, tx_power_curr, k)
+        errors_median.append(calculate_position_error(est_median, actual))
+        errors_kmeans.append(calculate_position_error(est_kmeans, actual))
+        errors_dbscan.append(calculate_position_error(est_dbscan, actual))
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.plot(k_values, errors_median, label="Median", marker="s")
-plt.plot(k_values, errors_kmeans, label="KMeans", marker="o")
-plt.plot(k_values, errors_dbscan, label="DBSCAN", marker="x")
-plt.xlabel("Number of Reference Points (k)")
-plt.ylabel("Localization Error (meters)")
-plt.title("exp_1: Localization Error vs. Number of Reference Points (k)")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig("k_lateration_exp1.png")
-plt.show()
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.plot(k_values, errors_median, label="Median", marker="s")
+    plt.plot(k_values, errors_kmeans, label="KMeans", marker="o")
+    plt.plot(k_values, errors_dbscan, label="DBSCAN", marker="x")
+    plt.xlabel("Number of Reference Points (k)")
+    plt.ylabel("Localization Error (meters)")
+    plt.title(f"{exp_dir_name}: Localization Error vs. Number of Reference Points (k)")
+    plt.xticks(range(1, 17))  # Explicitly set x-axis to span from 1 to 16
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"k_lateration_exp{i}.png")
+    plt.show()
