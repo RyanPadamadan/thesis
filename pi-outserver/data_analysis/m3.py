@@ -3,15 +3,15 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.cluster import KMeans
+from m1 import plot_localization_errors
+from ext import load_experiment_data_with_mesh, map_rssi_coords, path_loss_dist, trilateration, get_transmission_rssi, get_device_coordinates
 
-VOXEL_SIZE = 0.1
-from ext import (
-    load_experiment_data_with_mesh,
-    map_rssi_coords,
-    trilateration,
-    path_loss_dist,
-    get_transmission_rssi
-)
+VOXEL_SIZE = 0.2
+tx_power_curr = get_transmission_rssi("rssi_1m.csv")
+target_mac = "04:99:bb:d8:6e:2e"
+
+
 
 def compute_intersections(mapped, tx_power):
     triples = list(itertools.combinations(mapped, 3))
@@ -69,7 +69,6 @@ def set_weights(voxel_set, points):
     return weights
 def plot_intersections_and_voxels(intersection_points, voxel_set, name, voxel_size=0.1):
     intersection_points = np.array(intersection_points)
-
     voxel_centers = np.array([
         [ix * voxel_size + voxel_size / 2,
          iy * voxel_size + voxel_size / 2,
@@ -96,16 +95,39 @@ def plot_intersections_and_voxels(intersection_points, voxel_set, name, voxel_si
     plt.tight_layout()
     plt.savefig(name)
     plt.show()
-    
+
+def filter_intersections(intersection_pts, voxel_set):
+    """
+    Filters intersection points based on whether they fall within known voxels.
+
+    Parameters:
+    - intersection_pts: List of 3D coordinates (tuples or np arrays).
+    - voxel_set: A set of voxel coordinates (e.g., {(x, y, z), ...}).
+    - VOXEL_SIZE: Assumed to be defined globally.
+
+    Returns:
+    - A list of intersection points that are inside the voxel set.
+    """
+    filtered = []
+    for pt in intersection_pts:
+        # Convert point to voxel index based on VOXEL_SIZE
+        voxel = tuple((np.array(pt) // VOXEL_SIZE).astype(int))
+        if voxel in voxel_set:
+            filtered.append(pt)
+    return filtered
+
+errors = []
+
 if __name__ == "__main__":
-    for i in range(1,8):
+    for i in range(1, 8):
         exp_name = f"exp_{i}"
-        tx_power = get_transmission_rssi("rssi_1m.csv")  # Or just use -59
+        tx_power = get_transmission_rssi("rssi_1m.csv") 
 
         data = load_experiment_data_with_mesh(exp_name)
         coordinates_df = data["coordinates"]
         rssi_df = data["rssi"]
         meshpoints_df = data["meshpoints"]
+        devices = data["devices"]
 
         # Map RSSI values to spatial coordinates
         mapped = map_rssi_coords(coordinates_df, rssi_df)
@@ -117,9 +139,44 @@ if __name__ == "__main__":
         print(f"Found {len(intersection_points)} intersection points from {exp_name}")
 
         st = generate_voxel_set(meshpoints_df)
-        # plot_intersections_and_voxels(intersection_points, st, exp_name + "fig")
-        # weighted_points = set_weights(st, intersection_points)
-        # print(weighted_points)
+        out = filter_intersections(intersection_points, st)
 
-        # for pt in intersection_points:
-        #     print(f"Intersection: {pt}")
+        if not out:
+            print(f"No valid points found for {exp_name}. Skipping.")
+            errors.append(None)
+            continue
+
+        # Run KMeans
+        points_array = np.array(out)
+        kmeans = KMeans(n_clusters=1, n_init=10, random_state=0).fit(points_array)
+        estimated_position = kmeans.cluster_centers_[0]
+
+        # Get true position
+        true_position = get_device_coordinates(devices, target_mac)
+
+        # Compute Euclidean error
+        error = np.linalg.norm(np.array(true_position) - estimated_position)
+        errors.append(error)
+
+        print(f"Scene {i}: Estimated position = {estimated_position}, True = {true_position}, Error = {error:.2f}m")
+
+    # Plot errors
+    valid_errors = [e if e is not None else np.nan for e in errors]
+    scene_indices = list(range(1, 8))
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(scene_indices, valid_errors, marker='o', linestyle='-', color='dodgerblue', label='Localization Error')
+
+    # Optional: annotate points
+    for i, e in enumerate(valid_errors):
+        if not np.isnan(e):
+            plt.text(scene_indices[i], e + 0.05, f"{e:.2f}", ha='center', va='bottom', fontsize=9)
+
+    plt.xticks(scene_indices, [f"Scene {i}" for i in scene_indices])
+    plt.xlabel("Scene")
+    plt.ylabel("Localization Error (meters)")
+    plt.title("KMeans Localization Error per Scene")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()

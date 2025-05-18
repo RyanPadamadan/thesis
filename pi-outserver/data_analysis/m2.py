@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.cluster import KMeans, DBSCAN
 from ext import load_experiment_data, map_rssi_coords, path_loss_dist, trilateration, get_transmission_rssi, get_device_coordinates
 import math
+import matplotlib.pyplot as plt
 
 tx_power_curr = get_transmission_rssi("rssi_1m.csv")
 target_mac = "04:99:bb:d8:6e:2e"
@@ -107,7 +108,6 @@ def run_experiment(exp_id, localization_function, *args):
         error = calculate_position_error(estimated_position, actual_position)
         print(f"{method} → Estimated: {estimated_position}, Error: {error:.4f} meters")
 
-import matplotlib.pyplot as plt
 
 def plot_incremental_errors(errors_dict):
     plt.figure(figsize=(10, 6))
