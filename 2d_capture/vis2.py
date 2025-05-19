@@ -50,18 +50,22 @@ median_grid = create_grid(heatmap_median)
 # Plot KDE Peak and Median Heatmaps
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
-im1 = ax1.imshow(kernel_grid, cmap='viridis', origin='lower',
-                 extent=[min(x_unique), max(x_unique), min(y_unique), max(y_unique)])
+# KDE Heatmap
+im1 = ax1.imshow(kernel_grid, cmap='viridis', origin='lower', extent=[min(x_unique), max(x_unique), min(y_unique), max(y_unique)])
 ax1.set_title("Heatmap: Most Likely RSSI (KDE Peak)")
 ax1.set_xlabel("X")
 ax1.set_ylabel("Y")
+ax1.plot(0, 0.56, marker='o', color='red', markersize=8, label='Device Location')
+ax1.text(0, 0.56 + 0.02, "Device Location", color='blue', ha='center')
 plt.colorbar(im1, ax=ax1, shrink=0.8)
 
-im2 = ax2.imshow(median_grid, cmap='plasma', origin='lower',
-                 extent=[min(x_unique), max(x_unique), min(y_unique), max(y_unique)])
+# Median Heatmap
+im2 = ax2.imshow(median_grid, cmap='plasma', origin='lower', extent=[min(x_unique), max(x_unique), min(y_unique), max(y_unique)])
 ax2.set_title("Heatmap: Median RSSI")
 ax2.set_xlabel("X")
 ax2.set_ylabel("Y")
+ax2.plot(0, 0.56, marker='o', color='blue', markersize=8, label='Device Location')
+ax2.text(0.3, 0.56 + 0.06, "Device Location", color='blue', ha='center')
 plt.colorbar(im2, ax=ax2, shrink=0.8)
 
 plt.tight_layout()
