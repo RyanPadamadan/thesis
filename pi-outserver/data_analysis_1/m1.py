@@ -18,31 +18,6 @@ def euclidean_distance(p1, p2):
 def total_cost(candidate, points):
     return sum(euclidean_distance(candidate, p) for p in points)
 
-def localize_device_kmedoids(exp_dir_name, tx_power, n_clusters=1):
-    coords_df, dev, rssi_df = load_experiment_data(exp_dir_name)
-    mapped = map_rssi_coords(coords_df, rssi_df)
-    intersection_points = compute_intersections(mapped, tx_power)
-    
-    if not intersection_points:
-        return None
-
-    points_array = np.array(intersection_points)
-
-    if n_clusters != 1:
-        raise NotImplementedError("This version supports only k=1 (single medoid)")
-
-    best_medoid = None
-    min_cost = float('inf')
-    
-    for i in range(len(points_array)):
-        candidate = points_array[i]
-        cost = total_cost(candidate, points_array)
-        if cost < min_cost:
-            min_cost = cost
-            best_medoid = candidate
-
-    return tuple(best_medoid), get_device_coordinates(dev, target_mac)
-
 
 
 def compute_intersections(mapped, tx_power):
