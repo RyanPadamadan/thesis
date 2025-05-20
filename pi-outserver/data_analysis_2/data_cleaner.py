@@ -3,6 +3,7 @@ import numpy as np
 import os
 import math
 
+VOXELSIZE = 0.1 # 10cm
 # Define a point to be a tuple with x,y,z; not using classes because I cannot be bothered
 def load_experiment_data(exp_dir_name):
     # just setting the correct script directory for 
@@ -132,4 +133,16 @@ def path_loss_dist(rssi, tx):
 
 def distance(p1, p2):
     return math.hypot(p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2])
+
+def generate_voxel_set(mesh_df):
+    voxel_set = set()
+    for _, row in mesh_df.iterrows():
+        voxel = (
+            float(math.floor(row["x"] / VOXELSIZE)),
+            float(math.floor(row["y"] / VOXELSIZE)),
+            float(math.floor(row["z"] / VOXELSIZE))
+        )
+        voxel_set.add(voxel)
+
+    return voxel_set
 

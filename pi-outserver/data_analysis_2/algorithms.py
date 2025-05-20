@@ -2,7 +2,8 @@
 This is source file contains the some algorithms I've written.
 The algorithms created are:
 k lateration
-k means, weight is optional
+k means
+k means with ewma
 k medoid
 iterative distance improvement
 """
@@ -84,7 +85,7 @@ def get_estimates(points, k):
 
     return np.array(estimates)
 
-def k_means_ewma(points, prev=None, alpha=0.8):
+def k_means_ewma(points, prev=None, alpha=0.7):
     """
     Compute centroid of points, optionally blended with previous estimate using EWMA.
 
@@ -101,7 +102,9 @@ def k_means_ewma(points, prev=None, alpha=0.8):
     if prev is None:
         return current
     
-    return (1-alpha) * current + alpha * prev
+    prev = np.asarray(prev, dtype=float)
+    return (1 - alpha) * current + alpha * prev
+
 def k_means(points):
     """
     Compute centroid of points, optionally blended with previous estimate using EWMA.
@@ -140,6 +143,27 @@ def k_medoid(points):
     medoid_index = np.argmin(total_distances)
     return points[medoid_index]
 
+def find_best_experimental(exp_dir, clustering_algorithm, k, it=False, prev=None):
+    """
+    Run an experiment to find the best estimated device location using a specified clustering algorithm.
+
+    Parameters:
+    exp_dir (str): The name or path of the experiment directory containing the data.
+    clustering_algorithm (Callable): A clustering function that takes a list of estimates and returns a final estimate.
+    k (int): The number of estimates to generate from the experiment data.
+
+    Returns:
+    tuple: A tuple containing:
+        - final: The final estimated location of the device from the clustering algorithm.
+        - device: The actual device location used as ground truth.
+    """
+    points, device = setup_experiment_no_mesh(exp_dir)
+    estimates = get_estimates(points, k)
+    if it:
+        final = clustering_algorithm(estimates, prev)
+    else:
+        final = clustering_algorithm(estimates)
+    return final, device
 
 
 if __name__ == "__main__":
@@ -147,11 +171,7 @@ if __name__ == "__main__":
     for i in range(1, 8):
         experiment = f"exp_{i}"
         print(experiment)
-        points, device = setup_experiment_no_mesh(experiment)
-        estimates = get_estimates(points, 5)
-        final = k_means(estimates)
-        # if prev is  None: (for when using kmeans ewma)
-            # prev = final
+        final, device = find_best_experimental(experiment, k_means, 5)
         error = distance(device, final)
         print(error)
         answers.append(final)
