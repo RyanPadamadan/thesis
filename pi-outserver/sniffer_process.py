@@ -17,6 +17,7 @@ def packet_handler(pkt):
             if rssi != 0:
                 timestamp = time.time()
                 message = f"{src},{dst},{rssi},{timestamp}"
+                # print(message)
                 sock.sendto(message.encode(), (UDP_IP, UDP_PORT))
                 # print(f"[SENT] {message}")
 
