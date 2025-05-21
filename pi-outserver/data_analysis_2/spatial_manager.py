@@ -3,6 +3,7 @@ import numpy as np
 from itertools import combinations
 from scipy.optimize import least_squares
 from algorithms import *
+from scipy.spatial import KDTree
 import random
 # algorithms with spatial data
 """
@@ -60,14 +61,45 @@ def get_best_voxel(experiment_dir, k=4, clustering_algorithm=k_means_ewma, it=Fa
     print(f"Error: {distance(device, closest)}")
     return closest
 
+def assign_weights(experiment_dir, P=2.0):
+    # Load data and get estimates
+    points, device, voxel_set = setup_experiment_with_mesh(experiment_dir)
+    surface_voxels = get_surface_voxels(voxel_set)  # List of (x, y, z) tuples
+    estimates = get_estimates(points, 4)  # Estimate points to be weighted
+
+    # Build KDTree from surface voxels
+    surface_coords = np.array(surface_voxels)
+    tree = KDTree(surface_coords)
+
+    # For each estimate point, find distance to closest surface voxel
+    distances, _ = tree.query(estimates)
+    weights = np.exp(-P * distances)  # Exponential decay
+
+    # Map each estimate (tuple) to its weight
+    estimate_weights = {tuple(point): weight for point, weight in zip(estimates, weights)}
+    return estimate_weights, device
+
+def get_best_surface(surface, final):
+    closest = None
+    for voxel in surface:
+        if closest is None:
+            closest = voxel
+            continue
+        closest = voxel if distance(voxel, final) < distance(closest, final) else closest
+    return closest
+
 if __name__ == "__main__":
     answers = []
     prev = None
     it = True
-    for i in range(1, 3):
+    for i in range(1, 8):
         try:
             experiment = f"exp_{i}"
             print(experiment)
-            prev = get_best_voxel(experiment_dir=experiment, clustering_algorithm=k_means)
+            estimate_weights, device = assign_weights(experiment)
+            pred = weighted_mean(estimate_weights)
+            e1 = distance(device, pred)
+
+            print(e1)
         except Exception as e:
             print(e)

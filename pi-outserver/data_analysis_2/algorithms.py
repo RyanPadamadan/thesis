@@ -122,6 +122,28 @@ def k_means(points):
 def median(points):
     return np.median(points, axis=0)
 
+def weighted_mean(weight_map):
+    """
+    Compute the weighted mean (centroid) from a dictionary of {(x, y, z): weight}.
+    
+    Args:
+        weight_map (dict): Mapping from (x, y, z) tuple to weight (float).
+        
+    Returns:
+        np.ndarray: Weighted mean as a (3,) numpy array.
+    """
+    if not weight_map:
+        return np.array([0.0, 0.0, 0.0])
+
+    points = np.array(list(weight_map.keys()))
+    weights = np.array(list(weight_map.values()))
+
+    weighted_sum = np.sum(points * weights[:, np.newaxis], axis=0)
+    total_weight = np.sum(weights)
+
+    return weighted_sum / total_weight
+
+
 def k_medoid(points):
     """
     Compute the medoid (most central actual point) among a set of 3D points.
@@ -172,7 +194,7 @@ if __name__ == "__main__":
         try:
             experiment = f"exp_{i}"
             print(experiment)
-            final, device = find_best_experimental(experiment, k_medoids, 4)
+            final, device = find_best_experimental(experiment, k_means, 4)
             error = distance(device, final)
             print(error)
             answers.append(final)
