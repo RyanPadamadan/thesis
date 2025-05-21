@@ -64,7 +64,10 @@ if __name__ == "__main__":
     answers = []
     prev = None
     it = True
-    for i in range(1, 8):
-        experiment = f"exp_{i}"
-        print(experiment)
-        prev = get_best_voxel(experiment_dir=experiment, clustering_algorithm=k_means)
+    for i in range(1, 3):
+        try:
+            experiment = f"exp_{i}"
+            print(experiment)
+            prev = get_best_voxel(experiment_dir=experiment, clustering_algorithm=k_means)
+        except Exception as e:
+            print(e)

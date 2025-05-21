@@ -116,8 +116,8 @@ def map_distance_coords(coordinates_df, rssi_df, tx):
         if not in_window.empty:
             median_rssi = in_window['rssi'].median()
             distance = path_loss_dist(median_rssi, tx)
-            if distance > 2: # temp considering room size probably need to measure this nicely
-                continue
+            # if distance > 2: # temp considering room size probably need to measure this nicely
+            #     continue
             rssi_mapped.append((x, y, z, distance))
 
     return rssi_mapped

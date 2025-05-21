@@ -169,13 +169,14 @@ def find_best_experimental(exp_dir, clustering_algorithm, k, it=False, prev=None
 if __name__ == "__main__":
     answers = []
     for i in range(1, 8):
-        experiment = f"exp_{i}"
-        print(experiment)
-        final, device = find_best_experimental(experiment, k_means, 5)
-        error = distance(device, final)
-        print(error)
-        answers.append(final)
-    mean = np.mean(answers, axis=0)
-    error = distance(device, mean)
+        try:
+            experiment = f"exp_{i}"
+            print(experiment)
+            final, device = find_best_experimental(experiment, k_medoids, 4)
+            error = distance(device, final)
+            print(error)
+            answers.append(final)
+        except Exception as e:
+            print(e)
     print(error)
 
