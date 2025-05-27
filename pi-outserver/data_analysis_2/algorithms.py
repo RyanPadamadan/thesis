@@ -73,7 +73,7 @@ def get_estimates(points, k):
     all_combinations = list(combinations(points, k))
     print(len(all_combinations))
     random.shuffle(all_combinations)
-    sampled_combinations = all_combinations[:4000] 
+    sampled_combinations = all_combinations[:3000] 
 
     estimates = []
     for subset in sampled_combinations:
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         try:
             experiment = f"exp_{i}"
             print(experiment)
-            final, device = find_best_experimental(experiment, k_means, 4)
+            final, device = find_best_experimental(experiment, k_means, 3)
             error = distance(device, final)
             print(error)
             answers.append(final)

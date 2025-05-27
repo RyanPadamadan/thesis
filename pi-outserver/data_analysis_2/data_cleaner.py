@@ -3,7 +3,7 @@ import numpy as np
 import os
 import math
 
-VOXELSIZE = 0.1 # 10cm
+VOXELSIZE = 0.2 # 10cm
 # Define a point to be a tuple with x,y,z; not using classes because I cannot be bothered
 def load_experiment_data(exp_dir_name):
     # just setting the correct script directory for 
@@ -23,7 +23,7 @@ def load_experiment_data(exp_dir_name):
 
 def load_experiment_data_with_mesh(exp_dir_name):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    base_dir = os.path.abspath(os.path.join(script_dir, "..", exp_dir_name))
+    base_dir = os.path.abspath(os.path.join(script_dir, "..",exp_dir_name))
 
     # Define file paths
     coordinates_file = os.path.join(base_dir, "coordinates.csv")
@@ -68,42 +68,80 @@ def get_device_coordinates(device_df, target_mac=None):
     return (x, y, z)
 
 
-def map_rssi_coords(coordinates_df, rssi_df):
+def map_rssi_coords(coordinates_df, rssi_df, tx, window_size=1.0):
     rssi_vals = rssi_df.copy()
     coords = coordinates_df.copy()
-    rssi_vals['timestamp'] = pd.to_numeric(rssi_df['timestamp'], errors='coerce')
-    coords['timestamp'] = pd.to_numeric(coordinates_df['timestamp'], errors='coerce')
+    rssi_vals['timestamp'] = pd.to_numeric(rssi_vals['timestamp'], errors='coerce')
+    coords['timestamp'] = pd.to_numeric(coords['timestamp'], errors='coerce')
+
+    rssi_vals = rssi_vals.sort_values('timestamp').reset_index(drop=True)
+    coords = coords.sort_values('timestamp').reset_index(drop=True)
 
     rssi_mapped = []
-    for coord_time, x, y, z in zip(coordinates_df['timestamp'], coordinates_df['x'], coordinates_df['y'], coordinates_df['z']):
-        window_start = coord_time - 1
-        window_end = coord_time + 1
-        in_window = rssi_df[(rssi_df['timestamp'] >= window_start) & (rssi_df['timestamp'] <= window_end)]
-        if not in_window.empty:
-            median_rssi = in_window['rssi'].median()
+    rssi_index = 0
+    total_rssi = len(rssi_vals)
+
+    for coord_time, x, y, z in zip(coords['timestamp'], coords['x'], coords['y'], coords['z']):
+        window_start = coord_time - window_size / 2
+        window_end = coord_time + window_size / 2
+
+        while rssi_index < total_rssi and rssi_vals.loc[rssi_index, 'timestamp'] < window_start:
+            rssi_index += 1
+
+        j = rssi_index
+        current_window = []
+        while j < total_rssi and rssi_vals.loc[j, 'timestamp'] <= window_end:
+            current_window.append(rssi_vals.loc[j, 'rssi'])
+            j += 1
+
+        if current_window:
+            median_rssi = np.mean(current_window)
+            # distance = path_loss_dist(median_rssi, tx)
+            if median_rssi < -70:
+                continue
             rssi_mapped.append((x, y, z, median_rssi))
+
+        rssi_index = j
 
     return rssi_mapped
 
-def map_distance_coords(coordinates_df, rssi_df, tx):
+def map_distance_coords(coordinates_df, rssi_df, tx, window_size=1.0):
     rssi_vals = rssi_df.copy()
     coords = coordinates_df.copy()
-    rssi_vals['timestamp'] = pd.to_numeric(rssi_df['timestamp'], errors='coerce')
-    coords['timestamp'] = pd.to_numeric(coordinates_df['timestamp'], errors='coerce')
+    rssi_vals['timestamp'] = pd.to_numeric(rssi_vals['timestamp'], errors='coerce')
+    coords['timestamp'] = pd.to_numeric(coords['timestamp'], errors='coerce')
+
+    rssi_vals = rssi_vals.sort_values('timestamp').reset_index(drop=True)
+    coords = coords.sort_values('timestamp').reset_index(drop=True)
 
     rssi_mapped = []
-    for coord_time, x, y, z in zip(coordinates_df['timestamp'], coordinates_df['x'], coordinates_df['y'], coordinates_df['z']):
-        window_start = coord_time - 1
-        window_end = coord_time + 1
-        in_window = rssi_df[(rssi_df['timestamp'] >= window_start) & (rssi_df['timestamp'] <= window_end)]
-        if not in_window.empty:
-            median_rssi = in_window['rssi'].median()
+    rssi_index = 0
+    total_rssi = len(rssi_vals)
+
+    for coord_time, x, y, z in zip(coords['timestamp'], coords['x'], coords['y'], coords['z']):
+        window_start = coord_time - window_size / 2
+        window_end = coord_time + window_size / 2
+
+        while rssi_index < total_rssi and rssi_vals.loc[rssi_index, 'timestamp'] < window_start:
+            rssi_index += 1
+
+        j = rssi_index
+        current_window = []
+        while j < total_rssi and rssi_vals.loc[j, 'timestamp'] <= window_end:
+            current_window.append(rssi_vals.loc[j, 'rssi'])
+            j += 1
+
+        if current_window:
+            median_rssi = np.median(current_window)
             distance = path_loss_dist(median_rssi, tx)
-            if distance > 4: # temp considering room size probably need to measure this nicely
+            if distance > 4:
                 continue
             rssi_mapped.append((x, y, z, distance))
 
+        rssi_index = j
+
     return rssi_mapped
+
 
 def get_transmission_rssi(file_name):
     script_dir = os.path.dirname(os.path.abspath(__file__))
