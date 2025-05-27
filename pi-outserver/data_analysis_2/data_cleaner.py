@@ -68,7 +68,7 @@ def get_device_coordinates(device_df, target_mac=None):
     return (x, y, z)
 
 
-def map_rssi_coords(coordinates_df, rssi_df, tx, window_size=1.0):
+def map_rssi_coords(coordinates_df, rssi_df, tx, window_size=0.5):
     rssi_vals = rssi_df.copy()
     coords = coordinates_df.copy()
     rssi_vals['timestamp'] = pd.to_numeric(rssi_vals['timestamp'], errors='coerce')
@@ -97,7 +97,7 @@ def map_rssi_coords(coordinates_df, rssi_df, tx, window_size=1.0):
         if current_window:
             median_rssi = np.mean(current_window)
             # distance = path_loss_dist(median_rssi, tx)
-            if median_rssi < -70:
+            if median_rssi < -80:
                 continue
             rssi_mapped.append((x, y, z, median_rssi))
 
@@ -105,7 +105,7 @@ def map_rssi_coords(coordinates_df, rssi_df, tx, window_size=1.0):
 
     return rssi_mapped
 
-def map_distance_coords(coordinates_df, rssi_df, tx, window_size=1.0):
+def map_distance_coords(coordinates_df, rssi_df, tx, window_size=0.5):
     rssi_vals = rssi_df.copy()
     coords = coordinates_df.copy()
     rssi_vals['timestamp'] = pd.to_numeric(rssi_vals['timestamp'], errors='coerce')
@@ -134,7 +134,7 @@ def map_distance_coords(coordinates_df, rssi_df, tx, window_size=1.0):
         if current_window:
             median_rssi = np.median(current_window)
             distance = path_loss_dist(median_rssi, tx)
-            if distance > 4:
+            if distance > 6:
                 continue
             rssi_mapped.append((x, y, z, distance))
 

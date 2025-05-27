@@ -177,15 +177,15 @@ if __name__ == "__main__":
     answers = []
     prev = None
     it = True
-    for i in range(1, 14):
+    for i in range(1, 36):
         try:
             experiment = f"exp_{i}"
             print(experiment)
-            estimate_weights, device = assign_weights_rssi(experiment, 4)
+            estimate_weights, device = assign_weights_rssi(experiment, 5)
             pred = weighted_mean(estimate_weights)
             # pred, device = get_exponential_decay(experiment)
             e1 = distance(device, pred)
-            print(f"Error to actual device: {e1}")
+            print(f"Error: {e1}")
 
             # Get the surface voxel closest to prediction
             # _, _, voxel_set = setup_experiment_with_mesh(experiment)

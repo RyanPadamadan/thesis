@@ -13,6 +13,36 @@ from itertools import combinations
 from scipy.optimize import least_squares
 import random
 
+def sample_random_combinations(iterable, r, n_samples):
+    """
+    Generates n_samples random combinations of size r from iterable,
+    without computing all combinations.
+
+    Args:
+        iterable: Source data (e.g., list of points)
+        r: Size of each combination
+        n_samples: Number of combinations to return
+
+    Returns:
+        List of randomly sampled combinations (each a tuple of r elements)
+    """
+    pool = tuple(iterable)
+    n = len(pool)
+    
+    if r > n:
+        raise ValueError("r must be <= len(iterable)")
+    
+    combinations = []
+    seen = set()
+    
+    while len(combinations) < n_samples:
+        indices = tuple(sorted(random.sample(range(n), r)))
+        if indices not in seen:
+            seen.add(indices)
+            combinations.append(tuple(pool[i] for i in indices))
+    
+    return combinations
+
 # Some globals that we will use
 tx_power_curr = get_transmission_rssi("rssi_1m.csv")
 target_mac = "04:99:bb:d8:6e:2e"
@@ -63,17 +93,18 @@ def get_estimates(points, k):
         k: number of points per subset (k >= 4)
         
     Returns:
-        np.ndarray of estimated positions
+        np.ndarray of estimated positionsc
     """
     if k < 4:
         raise ValueError("k must be at least 4 for 3D trilateration.")
     if len(points) < k:
         raise ValueError("Not enough points to select k from.")
 
-    all_combinations = list(combinations(points, k))
-    print(len(all_combinations))
-    random.shuffle(all_combinations)
-    sampled_combinations = all_combinations[:3000] 
+    # all_combinations = list(combinations(points, k))
+    # print(len(all_combinations))
+    # sampled_combinations = random.sample(all_combinations, 4000)
+    print("sampling 4000 data points")
+    sampled_combinations = sample_random_combinations(points, k, 4000)
 
     estimates = []
     for subset in sampled_combinations:
