@@ -110,8 +110,8 @@ def assign_weights_rssi(experiment_dir, k=4, Q=2.0, P=2.0, alpha=0.3, max_dist=4
         voxel = voxel_keys[idx]
         rssi = voxel_rssi_map[voxel]
         norm = ((-70 - rssi) / (-70))  
-        x = np.exp(-4 * norm)
-        weight = x * (1 + alpha * np.exp((-1) * spatial_y))
+        x = np.exp(-2 * norm)
+        weight = x * (1 + alpha * np.exp((-2) * spatial_y))
         combined_weights[tuple(est)] = weight
 
     return combined_weights, device
@@ -181,9 +181,9 @@ if __name__ == "__main__":
         try:
             experiment = f"exp_{i}"
             print(experiment)
-            estimate_weights, device = assign_weights_rssi(experiment, 5)
+            estimate_weights, device = assign_weights_rssi(experiment, 4)
             pred = weighted_mean(estimate_weights)
-            pred, device = get_exponential_decay(experiment)
+            # pred, device = get_exponential_decay(experiment)
             e1 = distance(device, pred)
             print(f"Error to actual device: {e1}")
 

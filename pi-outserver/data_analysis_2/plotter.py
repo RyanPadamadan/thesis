@@ -116,6 +116,7 @@ def plot_errors(experiments, error_dicts):
     plt.tight_layout()
     plt.savefig(f"graphset2/Exponential Decay")
     # plt.show()
+
 def plot_errors_massive(experiments, error_dicts, k, number):
     """
     Plots the line graph comparing algorithm performance.
@@ -136,20 +137,25 @@ def plot_errors_massive(experiments, error_dicts, k, number):
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"graphset2/{k}_Exponential Decay {number}")
+    plt.savefig(f"graphset2/Exponential_Decay{k}_{number}.png")
     # plt.show()
 
 
 if __name__ == "__main__":
     experiments = [f"exp_{i}" for i in range(1, 14)]
+    dc = {}
     for k in [4,5]:
-        all_errors = []
-        for alph in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
+        for alph in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]:
+            all_errors = []
             for exp in experiments:
                 print(f"Running {exp}")
                 result = run_all_algorithms(exp, k=k, alpha=alph, prev=None)
                 all_errors.append(result)
-
+            dc[(k, alph)] = all_errors
             # plot_just_weighted(exp)
-
             plot_errors_massive(experiments, all_errors, k, alph)
+    # print(dc)
+    
+    with open("error_data", "w") as f:
+        for key, val in dc.items():
+            f.write(f"{key}: {val}\n")
