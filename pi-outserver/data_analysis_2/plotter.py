@@ -53,7 +53,7 @@ def run_all_algorithms(exp_dir, k=4, alpha=0.7, prev=None):
 
     # exponential decay with rssi field
     try:
-        estimate_weights, device = assign_weights_rssi(exp_dir, k)
+        estimate_weights, device = assign_weights_rssi(exp_dir, k, alpha=alpha)
         pred = weighted_mean(estimate_weights)
         errors["exponential decay"] = distance(pred, device)
     except Exception as e:
@@ -114,19 +114,42 @@ def plot_errors(experiments, error_dicts):
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("graphs/Exponential Decay 5")
-    plt.show()
+    plt.savefig(f"graphset2/Exponential Decay")
+    # plt.show()
+def plot_errors_massive(experiments, error_dicts, k, number):
+    """
+    Plots the line graph comparing algorithm performance.
+    """
+    algorithms = list(error_dicts[0].keys())
+    x = list(range(1, len(experiments) + 1))
+
+    plt.figure(figsize=(12, 6))
+
+    for algo in algorithms:
+        y = [errs.get(algo, None) for errs in error_dicts]
+        plt.plot(x, y, marker='o', label=algo)
+
+    plt.xticks(x, experiments, rotation=45)
+    plt.xlabel("Experiment")
+    plt.ylabel("Error (Euclidean Distance)")
+    plt.title("Comparison of Estimation Algorithms")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f"graphset2/{k}_Exponential Decay {number}")
+    # plt.show()
 
 
 if __name__ == "__main__":
     experiments = [f"exp_{i}" for i in range(1, 14)]
-    all_errors = []
+    for k in [4,5]:
+        all_errors = []
+        for alph in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
+            for exp in experiments:
+                print(f"Running {exp}")
+                result = run_all_algorithms(exp, k=k, alpha=alph, prev=None)
+                all_errors.append(result)
 
-    for exp in experiments:
-        print(f"Running {exp}")
-        result = run_all_algorithms(exp, k=4, alpha=0.4, prev=None)
-        all_errors.append(result)
+            # plot_just_weighted(exp)
 
-        # plot_just_weighted(exp)
-
-    plot_errors(experiments, all_errors)
+            plot_errors_massive(experiments, all_errors, k, alph)
