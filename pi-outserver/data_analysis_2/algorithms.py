@@ -103,8 +103,8 @@ def get_estimates(points, k):
     # all_combinations = list(combinations(points, k))
     # print(len(all_combinations))
     # sampled_combinations = random.sample(all_combinations, 4000)
-    print("sampling 4000 data points")
-    sampled_combinations = sample_random_combinations(points, k, 4000)
+    print("sampling 2000 data points")
+    sampled_combinations = sample_random_combinations(points, k, 1000)
 
     estimates = []
     for subset in sampled_combinations:

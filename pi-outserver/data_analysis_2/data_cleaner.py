@@ -3,12 +3,13 @@ import numpy as np
 import os
 import math
 
-VOXELSIZE = 0.2 # 10cm
+VOXELSIZE = 100 # 10cm # 6 3 good
+VOXELSIZER = 100
 # Define a point to be a tuple with x,y,z; not using classes because I cannot be bothered
 def load_experiment_data(exp_dir_name):
     # just setting the correct script directory for 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    base_dir = os.path.abspath(os.path.join(script_dir, "..", exp_dir_name))
+    base_dir = os.path.abspath(os.path.join(script_dir, "..",exp_dir_name))
 
     # Define file paths
     coordinates_file = os.path.join(base_dir, "coordinates.csv")
@@ -97,7 +98,7 @@ def map_rssi_coords(coordinates_df, rssi_df, tx, window_size=0.5):
         if current_window:
             median_rssi = np.mean(current_window)
             # distance = path_loss_dist(median_rssi, tx)
-            if median_rssi < -80:
+            if median_rssi < -70:
                 continue
             rssi_mapped.append((x, y, z, median_rssi))
 
@@ -134,7 +135,7 @@ def map_distance_coords(coordinates_df, rssi_df, tx, window_size=0.5):
         if current_window:
             median_rssi = np.median(current_window)
             distance = path_loss_dist(median_rssi, tx)
-            if distance > 6:
+            if distance > 4:
                 continue
             rssi_mapped.append((x, y, z, distance))
 
@@ -158,12 +159,18 @@ def distance(p1, p2):
 def generate_voxel_set(mesh_df):
     voxel_set = set()
     for _, row in mesh_df.iterrows():
-        voxel = (
-            float(math.floor(row["x"] / VOXELSIZE)),
-            float(math.floor(row["y"] / VOXELSIZE)),
-            float(math.floor(row["z"] / VOXELSIZE))
+        i = math.floor(row["x"] / VOXELSIZE)
+        j = math.floor(row["y"] / VOXELSIZE)
+        k = math.floor(row["z"] / VOXELSIZE)
+
+        # Convert voxel index to voxel center
+        voxel_center = (
+            (i + 0.5) * VOXELSIZE,
+            (j + 0.5) * VOXELSIZE,
+            (k + 0.5) * VOXELSIZE
         )
-        voxel_set.add(voxel)
+
+        voxel_set.add(voxel_center)
 
     return voxel_set
 

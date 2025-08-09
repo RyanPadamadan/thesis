@@ -86,51 +86,83 @@ def assign_weights(experiment_dir, k, P=2.0, max_dist=3):
     estimate_weights = {tuple(point): weight for point, weight in zip(estimates, weights)}
     return estimate_weights, device
 
-def assign_weights_rssi(experiment_dir, k=4, Q=2.0, P=2.0, alpha=0.3, max_dist=4):
+def assign_weights_rssi(experiment_dir, k=4, Q=3.0, P=3.0, alpha=0.9, rssi_max=-70):
     # --- Step 1: Load data ---
-    rssi_points = setup_field(experiment_dir)  # (x, y, z, rssi)
+    rssi_points = setup_field(experiment_dir)  
     points, device, voxel_set = setup_experiment_with_mesh(experiment_dir)
     surface_voxels = get_surface_voxels(voxel_set)
     voxel_rssi_map = generate_voxel_rssi_field(rssi_points)
     estimates = get_estimates(points, k)
 
-    # --- Step 2: Build KDTree for surface and voxel fields ---
+    # --- Step 2: Build KD-Trees ---
     surface_tree = KDTree(np.array(surface_voxels))
-    voxel_coords = [np.array(voxel) * VOXELSIZE for voxel in voxel_rssi_map.keys()]
+    voxel_coords = [np.array(voxel) * VOXELSIZER for voxel in voxel_rssi_map.keys()]
     voxel_tree = KDTree(voxel_coords)
     voxel_keys = list(voxel_rssi_map.keys())
 
-    # --- Step 3: Get spatial weights ---
-    spatial_dists, _ = surface_tree.query(estimates)
-
-    # --- Step 4: Get RSSI weights and apply correct formula ---
+    # --- Step 3: Compute weights ---
     combined_weights = {}
-    for est, spatial_y in zip(estimates, spatial_dists):
-        _, idx = voxel_tree.query(est)
-        voxel = voxel_keys[idx]
-        rssi = voxel_rssi_map[voxel]
-        norm = ((-70 - rssi) / (-70))  
-        x = np.exp(-2 * norm)
-        weight = x * (1 + alpha * np.exp((-2) * spatial_y))
-        combined_weights[tuple(est)] = weight
+    for est in estimates:
+        d_i, _ = surface_tree.query(est)
 
+        δ_i, voxel_idx = voxel_tree.query(est)
+        voxel = voxel_keys[voxel_idx]
+        rssi = voxel_rssi_map[voxel]
+
+        # Compute confidence penalty
+        c_i = (rssi - rssi_max) / rssi_max
+        # Apply exponential decay filtering
+        x_i = np.exp(-Q * c_i) * np.exp(-P * δ_i)
+        w_i = x_i * (1 + alpha * np.exp(-Q * d_i))
+
+        combined_weights[tuple(est)] = w_i
     return combined_weights, device
 
+def assign_weights_rssi_v2(experiment_dir, estimates, k=10, Q=3.0, P=3.0, alpha=0.9, rssi_max=-70):
+    # --- Step 1: Load data ---
+    rssi_points = setup_field(experiment_dir)  
+    points, device, voxel_set = setup_experiment_with_mesh(experiment_dir)
+    surface_voxels = get_surface_voxels(voxel_set)
+    voxel_rssi_map = generate_voxel_rssi_field(rssi_points)
+
+    # --- Step 2: Build KD-Trees ---
+    surface_tree = KDTree(np.array(surface_voxels))
+    voxel_coords = [np.array(voxel) * VOXELSIZER for voxel in voxel_rssi_map.keys()]
+    voxel_tree = KDTree(voxel_coords)
+    voxel_keys = list(voxel_rssi_map.keys())
+
+    # --- Step 3: Compute weights ---
+    combined_weights = {}
+    for est in estimates:
+        d_i, _ = surface_tree.query(est)
+
+        δ_i, voxel_idx = voxel_tree.query(est)
+        voxel = voxel_keys[voxel_idx]
+        rssi = voxel_rssi_map[voxel]
+
+        # Compute confidence penalty
+        c_i = (rssi - rssi_max) / rssi_max
+        # Apply exponential decay filtering
+        x_i = np.exp(-Q * c_i) * np.exp(-Q * δ_i)
+        w_i = x_i * (1 + alpha * np.exp(-P * d_i))
+
+        combined_weights[tuple(est)] = w_i
+    return combined_weights, device
 
 def generate_voxel_rssi_field(points):
     voxel_rssi_map = {}
 
     for x, y, z, rssi in points:
-        i = int(x // VOXELSIZE)
-        j = int(y // VOXELSIZE)
-        k = int(z // VOXELSIZE)
-        key = (i, j, k)
+        i = int(np.floor(x / VOXELSIZER))
+        j = int(np.floor(y / VOXELSIZER))
+        k = int(np.floor(z / VOXELSIZER))
+
+        key = (i, j, k)  # Use indices, not real coordinates
 
         if key not in voxel_rssi_map:
             voxel_rssi_map[key] = []
         voxel_rssi_map[key].append(rssi)
 
-    # Average RSSI per voxel
     return {k: np.median(v) for k, v in voxel_rssi_map.items()}
 
 
@@ -181,7 +213,7 @@ if __name__ == "__main__":
         try:
             experiment = f"exp_{i}"
             print(experiment)
-            estimate_weights, device = assign_weights_rssi(experiment, 5)
+            estimate_weights, device = assign_weights_rssi(experiment, 4)
             pred = weighted_mean(estimate_weights)
             # pred, device = get_exponential_decay(experiment)
             e1 = distance(device, pred)
@@ -198,3 +230,4 @@ if __name__ == "__main__":
         
         except Exception as e:
             print(e)
+            break
